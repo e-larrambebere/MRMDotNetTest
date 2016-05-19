@@ -26,4 +26,11 @@ You will need to perform the following tasks:
 
 This is intended to be a creative exercise so the structure of the data stored in the database and the organisation of the APIs is left as a design decision for you.
 
-You should be looking to demonstrate an understanding of the entity framework and code first migrations.
+You should be looking to demonstrate the following:
+
+* an understanding of the entity framework
+* code first migrations
+* seeding the database
+* API design
+* application architecture and best practices
+* unit testing
