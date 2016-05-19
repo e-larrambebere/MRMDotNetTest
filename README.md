@@ -8,17 +8,22 @@ In this repository you will find a JSON file: `product.json` with some product d
 
 ```json
 {
-  "name": "",
-  "description": "",
-  "categoryId": 1
+  "name": "XXXXX",
+  "description": "XXXX",
+  "category": "XXXX"
 }
 ```
 
-You will also find a JSON file with categories in it `category.json`. Each entry in this file will have the following structure:
+You will need to perform the following tasks:
 
-```json
-{
-  "id": 1,
-  "title": "Wines"
-}
-```
+1. Create an ASP.Net application that uses the Entity Framework with code first migrations and a seed method that loads the products.
+2. Create API endpoints that support the following operations:
+  1. Retrieve all products
+  2. Retrieve a list of categories
+  3. Retrieve the products for a category
+  4. Creation of a new product (and if necessary the category for that product)
+  5. Deletion of a product
+
+This is intended to be a creative exercise so the structure of the data stored in the database and the organisation of the APIs is left as a design decision for you.
+
+You should be looking to demonstrate an understanding of the entity framework and code first migrations.
