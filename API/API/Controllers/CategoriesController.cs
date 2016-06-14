@@ -13,14 +13,32 @@ using API.Models;
 
 namespace API.Controllers
 {
+    public class CategoryViewModel
+    {
+        public int ID { get; set; }
+
+        public string Name { get; set; }
+    }
+
+
+
     public class CategoriesController : ApiController
     {
         private ApiContext db = new ApiContext();
 
         // GET: api/Categories
-        public IQueryable<Category> GetCategories()
+        public async Task<IQueryable<CategoryViewModel>> GetCategories()
         {
-            return db.Categories;
+            return await Task.FromResult(GetAllCategories());
+        }
+
+        private IQueryable<CategoryViewModel> GetAllCategories()
+        {
+            return db.Categories.Select(x => new CategoryViewModel
+            {
+                ID = x.ID,
+                Name = x.Name
+            });
         }
 
         // GET: api/Categories/5
@@ -33,7 +51,11 @@ namespace API.Controllers
                 return NotFound();
             }
 
-            return Ok(category);
+            return Ok(new CategoryViewModel
+            {
+                ID = category.ID,
+                Name = category.Name
+            });
         }
 
         // PUT: api/Categories/5
@@ -113,7 +135,7 @@ namespace API.Controllers
 
         private bool CategoryExists(int id)
         {
-            return db.Categories.Count(e => e.ID == id) > 0;
+            return db.Categories.Any(e => e.ID == id);
         }
     }
 }
