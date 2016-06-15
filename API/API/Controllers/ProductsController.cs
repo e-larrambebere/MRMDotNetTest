@@ -15,17 +15,11 @@ namespace API.Controllers
 {
     public class ProductsController : ApiController
     {
-        private ApiContext db = new ApiContext();
+        private readonly ApiContext db;
 
-        private readonly IAA aaa;
-
-        public interface IAA { }
-
-        public class IBB : IAA { }
-
-        public ProductsController(IAA db)
+        public ProductsController(ApiContext db)
         {
-            this.aaa = db;
+            this.db = db;
         }
 
         // GET: api/Products

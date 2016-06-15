@@ -1,13 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Web.Http;
-using System.Web.Http.Dependencies;
 using API.Controllers;
+using API.DependencyResolution;
 using API.Models;
-using Ninject.Activation;
-using Ninject.Parameters;
-using Ninject.Syntax;
+using ShortBus;
+using ShortBus.Ninject;
 
 [assembly: WebActivatorEx.PreApplicationStartMethod(typeof(API.App_Start.NinjectWebCommon), "Start")]
 [assembly: WebActivatorEx.ApplicationShutdownMethodAttribute(typeof(API.App_Start.NinjectWebCommon), "Stop")]
@@ -55,12 +52,23 @@ namespace API.App_Start
             {
                 kernel.Bind<Func<IKernel>>().ToMethod(ctx => () => new Bootstrapper().Kernel);
                 kernel.Bind<IHttpModule>().To<HttpApplicationInitializationHttpModule>();
+                kernel.Bind<IMediator>().To<Mediator>();
 
-                //kernel.Load(Assembly.GetExecutingAssembly());
+                kernel.Bind(x => x.FromThisAssembly()
+                .SelectAllClasses()
+                .InheritedFromAny(
+                    new[]
+                    {
+                        typeof(ICommandHandler<>), 
+                        typeof(IQueryHandler<,>)
+                    })
+                .BindDefaultInterfaces());
 
+                kernel.Bind<IDependencyResolver>().ToMethod(x => DependencyResolver.Current);
                 RegisterServices(kernel);
 
                 GlobalConfiguration.Configuration.DependencyResolver = new NinjectResolver(kernel);
+                ShortBus.DependencyResolver.SetResolver(new NinjectDependencyResolver(kernel));
 
                 return kernel;
             }
@@ -79,48 +87,6 @@ namespace API.App_Start
         {
             //kernel.Bind<ApiContext>().ToMethod(ctx => new ApiContext());
             kernel.Bind<ApiContext>().ToSelf().InRequestScope();
-            kernel.Bind<ProductsController.IAA>().To<ProductsController.IBB>();
-        }
-    }
-
-    public class NinjectResolver : NinjectScope,
-        System.Web.Http.Dependencies.IDependencyResolver,
-        System.Web.Mvc.IDependencyResolver
-    {
-        private readonly IKernel _kernel;
-        public NinjectResolver(IKernel kernel)
-            : base(kernel)
-        {
-            _kernel = kernel;
-        }
-        public IDependencyScope BeginScope()
-        {
-            return new NinjectScope(_kernel.BeginBlock());
-        }
-    }
-
-    public class NinjectScope : IDependencyScope
-    {
-        protected IResolutionRoot resolutionRoot;
-        public NinjectScope(IResolutionRoot kernel)
-        {
-            resolutionRoot = kernel;
-        }
-        public object GetService(Type serviceType)
-        {
-            IRequest request = resolutionRoot.CreateRequest(serviceType, null, new Parameter[0], true, true);
-            return resolutionRoot.Resolve(request).SingleOrDefault();
-        }
-        public IEnumerable<object> GetServices(Type serviceType)
-        {
-            IRequest request = resolutionRoot.CreateRequest(serviceType, null, new Parameter[0], true, true);
-            return resolutionRoot.Resolve(request).ToList();
-        }
-        public void Dispose()
-        {
-            IDisposable disposable = (IDisposable)resolutionRoot;
-            if (disposable != null) disposable.Dispose();
-            resolutionRoot = null;
         }
     }
 }
