@@ -24,7 +24,12 @@ namespace API.Controllers
 
     public class CategoriesController : ApiController
     {
-        private ApiContext db = new ApiContext();
+        private readonly ApiContext db;
+
+        public CategoriesController(ApiContext db)
+        {
+            this.db = db;
+        }
 
         // GET: api/Categories
         public async Task<IQueryable<CategoryViewModel>> GetCategories()

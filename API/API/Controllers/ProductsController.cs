@@ -17,6 +17,17 @@ namespace API.Controllers
     {
         private ApiContext db = new ApiContext();
 
+        private readonly IAA aaa;
+
+        public interface IAA { }
+
+        public class IBB : IAA { }
+
+        public ProductsController(IAA db)
+        {
+            this.aaa = db;
+        }
+
         // GET: api/Products
         public IQueryable<Product> GetProducts()
         {
