@@ -11,8 +11,9 @@ namespace API
         {
             // Web API configuration and services
 
-            // Web API routes
+            // Attribute routing.
             config.MapHttpAttributeRoutes();
+
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",

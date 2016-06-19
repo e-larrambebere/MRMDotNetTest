@@ -1,10 +1,16 @@
+using System.IO;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Web.Http;
 using API.Controllers;
 using API.DependencyResolution;
+using API.Infraestructure.Category;
+using API.Infraestructure.Product;
 using API.Models;
-using ShortBus;
-using ShortBus.Ninject;
+using MediatR;
+using Ninject.Extensions.Conventions;
+using Ninject.Planning.Bindings.Resolvers;
+
 
 [assembly: WebActivatorEx.PreApplicationStartMethod(typeof(API.App_Start.NinjectWebCommon), "Start")]
 [assembly: WebActivatorEx.ApplicationShutdownMethodAttribute(typeof(API.App_Start.NinjectWebCommon), "Stop")]
@@ -52,23 +58,10 @@ namespace API.App_Start
             {
                 kernel.Bind<Func<IKernel>>().ToMethod(ctx => () => new Bootstrapper().Kernel);
                 kernel.Bind<IHttpModule>().To<HttpApplicationInitializationHttpModule>();
-                kernel.Bind<IMediator>().To<Mediator>();
-
-                kernel.Bind(x => x.FromThisAssembly()
-                .SelectAllClasses()
-                .InheritedFromAny(
-                    new[]
-                    {
-                        typeof(ICommandHandler<>), 
-                        typeof(IQueryHandler<,>)
-                    })
-                .BindDefaultInterfaces());
-
-                kernel.Bind<IDependencyResolver>().ToMethod(x => DependencyResolver.Current);
+                
                 RegisterServices(kernel);
 
                 GlobalConfiguration.Configuration.DependencyResolver = new NinjectResolver(kernel);
-                ShortBus.DependencyResolver.SetResolver(new NinjectDependencyResolver(kernel));
 
                 return kernel;
             }
@@ -85,8 +78,17 @@ namespace API.App_Start
         /// <param name="kernel">The kernel.</param>
         private static void RegisterServices(IKernel kernel)
         {
-            //kernel.Bind<ApiContext>().ToMethod(ctx => new ApiContext());
+            kernel.Components.Add<IBindingResolver, ContravariantBindingResolver>();
+
+            kernel.Bind(scan => scan.FromAssemblyContaining<IMediator>().SelectAllClasses().BindDefaultInterface());
+            kernel.Bind(scan => scan.From(Assembly.GetExecutingAssembly()).SelectAllClasses().InNamespaceOf(typeof (ListCategories.QueryHandler)).BindAllInterfaces());
+            kernel.Bind(scan => scan.From(Assembly.GetExecutingAssembly()).SelectAllClasses().InNamespaceOf(typeof (ListProducts.QueryHandler)).BindAllInterfaces());
+
             kernel.Bind<ApiContext>().ToSelf().InRequestScope();
+
+            kernel.Bind<SingleInstanceFactory>().ToMethod(ctx => t => ctx.Kernel.Get(t));
+            kernel.Bind<MultiInstanceFactory>().ToMethod(ctx => t => ctx.Kernel.GetAll(t));
+            
         }
     }
 }

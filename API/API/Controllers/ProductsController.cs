@@ -9,116 +9,71 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using API.Infraestructure.Product;
 using API.Models;
+using MediatR;
 
 namespace API.Controllers
 {
     public class ProductsController : ApiController
     {
         private readonly ApiContext db;
+        private readonly IMediator mediator;
 
-        public ProductsController(ApiContext db)
+        public ProductsController(IMediator mediator)
         {
-            this.db = db;
+            this.mediator = mediator;
         }
 
         // GET: api/Products
-        public IQueryable<Product> GetProducts()
+        public async Task<IQueryable<ListProducts.Model>> GetProducts()
         {
-            return db.Products;
+            var products = await mediator.SendAsync(new ListProducts.Query());
+
+            return products;
         }
 
         // GET: api/Products/5
-        [ResponseType(typeof(Product))]
+        [ResponseType(typeof(FindProduct.Model))]
         public async Task<IHttpActionResult> GetProduct(int id)
         {
-            Product product = await db.Products.FindAsync(id);
-            if (product == null)
+            var model = await mediator.SendAsync(new FindProduct.Query(id));
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return Ok(product);
-        }
-
-        // PUT: api/Products/5
-        [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> PutProduct(int id, Product product)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id != product.ID)
-            {
-                return BadRequest();
-            }
-
-            db.Entry(product).State = EntityState.Modified;
-
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProductExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return StatusCode(HttpStatusCode.NoContent);
+            return Ok(model);
         }
 
         // POST: api/Products
         [ResponseType(typeof(Product))]
-        public async Task<IHttpActionResult> PostProduct(Product product)
+        public async Task<IHttpActionResult> PostProduct(CreateProduct.Command product)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Products.Add(product);
-            await db.SaveChangesAsync();
+            await mediator.SendAsync(product);
 
-            return CreatedAtRoute("DefaultApi", new { id = product.ID }, product);
+            return CreatedAtRoute("DefaultApi", new { id = product.Id }, product);
         }
 
         // DELETE: api/Products/5
         [ResponseType(typeof(Product))]
         public async Task<IHttpActionResult> DeleteProduct(int id)
         {
-            Product product = await db.Products.FindAsync(id);
-            if (product == null)
+            var model = await mediator.SendAsync(new FindProduct.Query(id));
+
+            if (model == null)
             {
                 return NotFound();
             }
 
-            db.Products.Remove(product);
-            await db.SaveChangesAsync();
+            await mediator.SendAsync(new DeleteProduct.Command(id));
 
-            return Ok(product);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        private bool ProductExists(int id)
-        {
-            return db.Products.Count(e => e.ID == id) > 0;
+            return Ok(model);
         }
     }
 }
