@@ -14,8 +14,13 @@ namespace API.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = false;
+
+#if DEBUG
             if (System.Diagnostics.Debugger.IsAttached == false)
+            {
                 System.Diagnostics.Debugger.Launch();
+            }
+#endif
         }
 
         protected override void Seed(Models.ApiContext context)
