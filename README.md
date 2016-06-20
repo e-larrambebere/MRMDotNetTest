@@ -34,3 +34,17 @@ You should be looking to demonstrate the following:
 * API design
 * application architecture and best practices
 * unit testing
+
+### Running this sample API
+
+1. Restore the NuGet packages.
+2. Open up the _Package Management Console_ and run the migrations by executing `Update-Database`. Please note that if you're executing the solution in _Debug_ mode you will be asked to attach a debugger to the execution of the `Seed` method, if you are not interested in debugging this method dismiss the popup by selecting `No`.
+3. Execute the solution like any other `Web API` project, the available endpoints are:
+ * **GET** _api/categories_ to retrieve all categories.
+ * **GET** _api/categories/1_ to retrieve the category with Id 1.
+ * **GET** _api/categories/1/products_ to retrieve all products from the category with Id 1.
+ * **GET** _api/categories?categoryids=1&categoryids=2_ to retrieve a list of categories.
+ * **GET** _api/products_ to retrieve all products.
+ * **GET** _api/products/1_ to retrieve the product with Id 1.
+ * **POST** _api/products_ to create a new Product.
+ * **DELETE** _api/products/1_ to delete the product with Id 1.
